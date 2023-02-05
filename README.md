@@ -6,7 +6,7 @@
 3. Terraform for Linode, AWS, Azure, GCP
 4. Deploy application to multiple envs
 
-## At the base of it: Make a 3 part application that serves some data
+ At the base of it: Make a 3 part application that serves some data
 
 - Data collector API to periodically get something into the DB (Python or Go)
 - DB
@@ -15,6 +15,13 @@
   - REST API
   - GraphQL API
 - Some type of Admin UI for content - e.g. Can I make Strapi work for this? (JS based) or can I make use of PocketBase?
+
+## Current short-term to-do
+
+1. Add local Postgres persistence layer
+2. Find a way to apply env varas from local.yml
+3. Start setting up kubernetes installation
+
 
 ## MVP
 
@@ -42,3 +49,14 @@
 - Kubernetes dashboard
 - Data pipeline where Python/Airflow crawls data, puts into storage, picked up by Airflow or Spark, reformatted and pushed to DB
 - Thorough tests for EVERYTHING
+
+
+## Components & Architecture
+
+### Scrapers - ```scrapers```
+
+Individual modules built with varying languages, with images that can be configured as kubernetes cronjobs that will collect data and send them via REST calls to ```ingestion```.
+
+### Ingestion - ```ingestion```
+
+A Python FastAPI-based REST API that receives data from all ```scrapers``` and pushes them to a backend database. All interactions with the DB happen here, so ```ingestion``` will also contain database initialization scripts.

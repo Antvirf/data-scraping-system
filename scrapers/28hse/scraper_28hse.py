@@ -5,44 +5,35 @@ Fetches recent listings on the main page for rental apartments, parses data and 
 import argparse
 import json
 import logging
-import time
+import os
 
 import bs4
 import requests
+from scraper_28hse_datamodel import scraper_dict_28hse
 
-# constants
-FILE_OUTPUT_NAME = "scraper_28hse_output.json"
+# reading parameters from the environment
+SCRAPER_LOGGING_LEVEL = {
+    "DEBUG":  logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL
 
+}[os.getenv("LOGGING_LEVEL", default="INFO")]
 
-scraper_dict_28hse = {
-    "listingTitle": lambda entry:
-        entry.select(".detail_page")[1].text,
-    "listingId": lambda entry:
-        entry.select(".detail_page")[1].get_attribute_list("attr1")[0],
-    "listingUrl": lambda entry:
-        entry.select(".detail_page")[1].get_attribute_list("href")[0],
-    "listingPostedAgo": lambda
-        entry: entry.select(".description")[0].select(".ui")[0].text.strip(),
-    "listingArea": lambda entry:
-        entry.select(".district_area")[0].select("a")[0].text,
-    "listingBuilding": lambda entry:
-        entry.select(".district_area")[0].select("a")[1].text,
-    "listingGrossArea": lambda entry:
-        float(entry.select(".areaUnitPrice")[
-            0].select("div")[0].text.split(" ")[2].replace(",", "")),
-    "listingSaleableArea": lambda entry:
-        float(entry.select(".areaUnitPrice")[
-            0].select("div")[1].text.split(" ")[2].replace(",", "")),
-    "listingCompanyName": lambda entry:
-        entry.select(".companyName")[0].text.strip(),
-    "listingPrice": lambda entry:
-        float(entry.select(".green")[0].text.split(
-            "$")[-1].replace(",", "")),
-    "listingTags": lambda entry:
-    [x.text.strip() for x in entry.select(".tagLabels")[0].select(".ui")],
-    "scrapeTime": lambda entry:
-        time.time()
-}
+SCRAPER_FILE_OUTPUT_NAME = os.getenv(
+    "FILE_OUTPUT_NAME",
+    default="scraper_28hse_output.json"
+)
+
+SCRAPER_INGESTION_SERVICE_HOST = os.getenv(
+    "SCRAPER_INGESTION_SERVICE_HOST", default="localhost")
+SCRAPER_INGESTION_SERVICE_PORT = os.getenv(
+    "SCRAPER_INGESTION_SERVICE_PORT", default=8080)
+
+# logger configuration
+logger = logging.getLogger()
+logger.setLevel(SCRAPER_LOGGING_LEVEL)
 
 
 def get_domain_from_url(input_url: str) -> str:
@@ -75,15 +66,20 @@ def recent_listing_entry_into_dict(entry: bs4.element.Tag, processing_dict: dict
     return listing_dict
 
 
-def merge_listing_lists(existing_listings: list, new_listings: list, overwrite: bool = False) -> list:
+def merge_listing_lists(
+        existing_listings: list,
+        new_listings: list,
+        overwrite: bool = False) -> list:
+    """Combines listings data with ability to overwrite previously scraped entries based on
+    listingId."""
     existing_ids = [x["listingId"] for x in existing_listings]
     new_ids = [x["listingId"] for x in new_listings]
     duplicated_ids = [x for x in existing_ids if x in new_ids]
 
     if overwrite:
         # take only non-overlap from existing data, and then use all of new data
-        merged_listings = [
-            x for x in existing_listings if x["listingId"] not in duplicated_ids] + [x for x in new_listings]
+        merged_listings = [x for x in existing_listings if x["listingId"] not in duplicated_ids] \
+            + [x for x in new_listings]
     else:
         # not overwriting - so keep everything from old, and take only non-overlap from new
         merged_listings = [x for x in existing_listings] + \
@@ -121,11 +117,32 @@ if __name__ == "__main__":
             recent_listing_entry_into_dict(listing, scraper_dict_28hse)
         )
 
-    # save output as specified
-    if args["output"].lower() == "json":
+    # save output as specified, or default to json
+    if args["output"].lower() == "ingestion-service":
+        for listing in new_listing_data:
+            sent_request = requests.post(
+                f"http://{SCRAPER_INGESTION_SERVICE_HOST}:{SCRAPER_INGESTION_SERVICE_PORT}/ingest/28hse/",
+                json=listing
+            )
+            if sent_request.status_code != 200:
+                logging.error(
+                    "%s: Listing %s: Sent entry with status %d",
+                    domain,
+                    listing["listingId"],
+                    sent_request.status_code
+                )
+            else:
+                logging.info(
+                    "%s: Listing %s: Sent entry with status %d",
+                    domain,
+                    listing["listingId"],
+                    sent_request.status_code
+                )
+    else:
+        logging.info("Saving file locally")
         # open file if exists
         try:
-            with open(FILE_OUTPUT_NAME, "r") as read_file:
+            with open(SCRAPER_FILE_OUTPUT_NAME, "r") as read_file:
                 existing_listing_data = json.load(read_file)
         except FileNotFoundError:
             existing_listing_data = []
@@ -136,9 +153,5 @@ if __name__ == "__main__":
             new_listing_data,
             overwrite=False
         )
-        with open(FILE_OUTPUT_NAME, "w") as write_file:
+        with open(SCRAPER_FILE_OUTPUT_NAME, "w") as write_file:
             json.dump(combined_listing_data, write_file, indent=4)
-
-    else:
-        raise NotImplementedError(
-            "'json' is the only available output method.")
