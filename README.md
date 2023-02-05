@@ -1,55 +1,61 @@
 # Data scraping system
 
-0. Base makefile with dependencies installation automation
-1. Makefile configure option to set keys etc.
-2. Base makefile, ability to spin up infra from scratch - choose between local or a cloud provider
-3. Terraform for Linode, AWS, Azure, GCP
-4. Deploy application to multiple envs
+Practice project to make a 5 part application:
 
- At the base of it: Make a 3 part application that serves some data
-
-- Data collector API to periodically get something into the DB (Python or Go)
-- DB
-- Internal data transformer microservice (interacts with various  DB backends) (Spring, Python)
-- Outbound service API to query (Go?)
+- Database / persistence layer
+- Data collector API to periodically get something into the DB
+- Internal data ingestion service (interacts with various  DB backends)
+- Outbound service API to query
   - REST API
   - GraphQL API
-- Some type of Admin UI for content - e.g. Can I make Strapi work for this? (JS based) or can I make use of PocketBase?
+- Some type of Admin UI or similar to view (some) content - using e.g. Strapi or PocketBase connected to the main DB
 
 ## Current short-term to-do
 
-1. Add local Postgres persistence layer
-2. Find a way to apply env varas from local.yml
-3. Start setting up kubernetes installation
+1. Build Postgres persistence layer
+  R of CRUD
+  D of CRUD
+2. Make database reads async somehow - test with delays
+3. Create first external API (Python version)
+  TEST DRIVEN DEVELOPMENT HERE! Write the tests first.
+  Read only, but implement a few different methods
+  Provide OpenAPI/Swagger docs
+4. Write tests for ingestion service
+5. Write tests for 28hse scraper
+6. Start setting up kubernetes installation
 
+## MVP To-do
 
-## MVP
+[x] Set up in Compose
+[x] PostgreSQL, running in the cluster itself
+[x] One data collector pod written in Python, pass data to ingestion
+[x] Data ingestion service in Python, push data from data collector to PostgreSQL
+[ ] REST API to fetch scraped data
 
-- Running on local Kubernetes
-- PostgreSQL, running in the cluster itself
-- One data collector pod, push data to local PostgreSQL
-- Data transformer microservice in Python
+## Various planned features and NFRs in no particular order
 
-## Planned features / NFRs todo
-
-- Following 12-factor app principles (primarily, separate config)
-- Using GHCR
-- Automated docs and architecture diagrams?
-- Protobuf gRPC between internal data - external data
-- GraphQL for external API
-- REST for external API
+- Manage deps and infra setup with Makefile
+- Manage secrets with Make for initial config
+- Make -> Terraform to provision infra to different providers (potentially Azure / AWS / GCP / Linode)
+- Following 12-factor app principles
+- Automated performance tests for each component
+- Multiple envs (dev sit prod) + automated promotion based on e.g. performance tests
+- Using GHCR to upload all images
+- Automated docs and architecture diagrams where possible
+- Protobuf gRPC between internal data - external data (scrapers -> ingestion)
+- GraphQL version for external API
+- REST version for external API
 - DevSecOps
 - Scalability - HorizontalPodAutoscaler (HPA)
 - Scalability - ClusterAutoScaler
 - Monitoring, tracing and logging stack installed on the cluster - loki, prometheus, grafana
+- Service mesh with Istio
 - OAuth2 proxy (or not; depends on DNS)
-- Service mesh
 - Kubernetes RBAC configs
-- Application performance analytics tooling?
+- Application performance analytics tooling
 - Kubernetes dashboard
 - Data pipeline where Python/Airflow crawls data, puts into storage, picked up by Airflow or Spark, reformatted and pushed to DB
 - Thorough tests for EVERYTHING
-
 
 ## Components & Architecture
 
@@ -59,4 +65,4 @@ Individual modules built with varying languages, with images that can be configu
 
 ### Ingestion - ```ingestion```
 
-A Python FastAPI-based REST API that receives data from all ```scrapers``` and pushes them to a backend database. All interactions with the DB happen here, so ```ingestion``` will also contain database initialization scripts.
+A Python FastAPI-based REST API that receives data from all ```scrapers``` and pushes them to a backend database. All interactions with the DB happen here, so ```ingestion``` will also contain database initialization scripts. First backend to be implemented will be PostgreSQL.
