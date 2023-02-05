@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  postgres:
+    platform: linux/amd64
+    container_name: db
+    build:
+      context: ./ingestion/backends/postgres
+      dockerfile: postgres.Dockerfile
+    ports:
+      - '5432:5432'
+    restart: always
+    env_file:
+      - ./environments/local.yml
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+  ingestion-service:
+    platform: linux/amd64
+    build:
+      context: ./ingestion
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    restart: always
+    env_file:
+      - ./environments/local.yml
+
+volumes:
+  postgres-db:
+
