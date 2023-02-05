@@ -4,7 +4,8 @@ from typing import Union
 from pydantic import BaseModel
 
 
-class scrapedListing(BaseModel):
+class scraped_listing(BaseModel):
+    """Data model for FastAPI"""
     listingId: str
     listingUrl: str
 

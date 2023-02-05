@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY . /app
 
 # start the server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "ingestion_service:app", "--host", "0.0.0.0", "--port", "8080"]

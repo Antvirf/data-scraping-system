@@ -562,5 +562,23 @@
             "Indoor Car Park"
         ],
         "scrapeTime": 1675568117.6556668
+    },
+    {
+        "listingTitle": "There are a large number of rentals in the brand new existing building above Tai Wai Station",
+        "listingId": "2533952",
+        "listingUrl": "https://www.28hse.com/en/rent/residential/property-2533952",
+        "listingPostedAgo": "2 hours ago posted",
+        "listingBuilding": "The Pavilia Farm",
+        "listingArea": "Tai Wai",
+        "listingGrossArea": null,
+        "listingSaleableArea": 452.0,
+        "listingCompanyName": "Midland Realty International Limited",
+        "listingPrice": 20000.0,
+        "listingTags": [
+            "2 beds",
+            "Residential",
+            "Apartment"
+        ],
+        "scrapeTime": 1675581411.206244
     }
 ]
