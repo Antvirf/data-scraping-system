@@ -13,24 +13,25 @@ Practice project to make a 5 part application:
 ## Current short-term to-do
 
 1. Build Postgres persistence layer
-  R of CRUD
-  D of CRUD
-2. Make database reads async somehow - test with delays
-3. Create first external API (Python version)
-  TEST DRIVEN DEVELOPMENT HERE! Write the tests first.
-  Read only, but implement a few different methods
-  Provide OpenAPI/Swagger docs
-4. Write tests for ingestion service
-5. Write tests for 28hse scraper
-6. Start setting up kubernetes installation
+    1. R of CRUD
+    1. D of CRUD
+1. Make database reads async somehow - test with delays
+1. Create first external API (Python version)
+    1. TEST DRIVEN DEVELOPMENT HERE! Write the tests first.
+    1. Read only, but implement a few different methods
+    1. Provide OpenAPI/Swagger docs
+1. Write tests for ingestion service
+1. Write tests for 28hse scraper
+1. Start setting up kubernetes installation
 
 ## MVP To-do
 
-[x] Set up in Compose
-[x] PostgreSQL, running in the cluster itself
-[x] One data collector pod written in Python, pass data to ingestion
-[x] Data ingestion service in Python, push data from data collector to PostgreSQL
-[ ] REST API to fetch scraped data
+- ~~Set up in Compose~~
+- ~~PostgreSQL, running in the cluster itself~~
+- ~~One data collector pod written in Python, pass data to ingestion~~
+- ~~Data ingestion service in Python, push data from data collector to PostgreSQL~~
+- ~~Basic versioning/changelogs with release please~~
+- REST API to fetch scraped data
 
 ## Various planned features and NFRs in no particular order
 
