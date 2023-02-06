@@ -1,6 +1,16 @@
 # Data scraping system
 
-Practice project to make a 5 part application:
+## Usage
+
+```bash
+make up # bring up db and continuously running services like ingestion (ctrl+c to stop)
+make collect # scrape and send data for ingestion from available scrapers
+make down # remove resources created by compose, including clearing db
+```
+
+## Background
+
+Practice and experimentation project to make multi-part application trying out different technologies.
 
 - Database / persistence layer
 - Data collector API to periodically get something into the DB
@@ -15,9 +25,9 @@ Practice project to make a 5 part application:
 1. Build Postgres persistence layer
     1. R of CRUD
     1. D of CRUD
-1. Make database reads async somehow - test with delays
+1. Make database reads async (test with simulated delays)
 1. Create first external API (Python version)
-    1. TEST DRIVEN DEVELOPMENT HERE! Write the tests first.
+    1. TDD approach
     1. Read only, but implement a few different methods
     1. Provide OpenAPI/Swagger docs
 1. Write tests for ingestion service
@@ -55,6 +65,7 @@ Practice project to make a 5 part application:
 - Kubernetes RBAC configs
 - Application performance analytics tooling
 - Kubernetes dashboard
+- If a frontend can be SPA, host it on GitHub pages?
 - Data pipeline where Python/Airflow crawls data, puts into storage, picked up by Airflow or Spark, reformatted and pushed to DB
 - Thorough tests for EVERYTHING
 
