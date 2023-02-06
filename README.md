@@ -24,11 +24,11 @@ Practice and experimentation project to make multi-part application trying out d
 
 ## Current short-term to-do
 
-1. Build Postgres persistence layer
-    1. R of CRUD
-    1. D of CRUD
+1. ~~Build Postgres persistence layer~~
+    1. ~~R of CRUD~~
+    1. ~~D of CRUD~~
 1. Make database reads async (test with simulated delays)
-1. Create first external API (Python version)
+1. Create first external API (Python version), or split from the ingestion service (same base, but additional methods?)
     1. TDD approach
     1. Read only, but implement a few different methods
     1. Provide OpenAPI/Swagger docs

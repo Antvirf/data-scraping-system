@@ -5,8 +5,7 @@ import os
 
 from backends.postgres.db_model_28hse import scraped_listing_db_entry
 from backends.postgres.postgres import PostgresBackend
-from fastapi import Depends, FastAPI
-from ingestion_backend import DataBackendABC
+from fastapi import FastAPI, HTTPException, Response
 # 28hse specific models
 from models.model_28hse import scraped_listing
 
@@ -38,15 +37,13 @@ app = FastAPI()
 
 storage_backend = AVAILABLE_BACKENDS[INGESTION_STORAGE_BACKEND]()
 
-# ingestion endpoints
+# ops endpoints
 
 
-@app.post("/ingest/28hse/")
-def ingest_incoming_data_28hse(listing: scraped_listing, status_code=201):
-    """Takes data from the POST request payload and stores it in storage backend."""
-    new_listing = scraped_listing_db_entry(**listing.dict())
-    storage_backend.create_entry(new_listing)
-    return "record created"
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    return "ingestion service is alive"
 
 
 @app.post("/ingest/debug/")
@@ -56,10 +53,34 @@ def ingest_incoming_data_any(incoming):
     print(incoming)
     return 0
 
-# ops endpoints
+
+# scrapers' endpoints - 28hse
+
+@app.post("/ingest/28hse/")
+def ingest_incoming_data_28hse(listing: scraped_listing):
+    """Takes a scrapedListing from the POST request payload and stores it in storage backend."""
+    new_listing = scraped_listing_db_entry(**listing.dict())
+    storage_backend.create_entry(new_listing)
+    return "record created"
 
 
-@app.get("/health")
-def read_root():
-    """Health check endpoint"""
-    return "ingestion service is alive"
+@app.get("/data/28hse/{identifier}")
+def fetch_data_by_id_28hse(identifier: str):
+    """Fetches a scraped 28hse datapoint by ID"""
+    record = storage_backend.read_entry(
+        "listingId", identifier, scraped_listing_db_entry)
+    if not record:
+        raise HTTPException(status_code=404,
+                            detail=f"No record found with id: {identifier}")
+    return record
+
+
+@app.delete("/data/28hse/{identifier}")
+def delete_data_by_id_28hse(identifier: str):
+    """Deletes a scraped 28hse datapoint by ID"""
+    deleted = storage_backend.delete_entry(
+        "listingId", identifier, scraped_listing_db_entry)
+    if not deleted:
+        raise HTTPException(status_code=404,
+                            detail=f"No record found with id: {identifier}")
+    return Response(status_code=204)

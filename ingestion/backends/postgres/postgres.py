@@ -3,8 +3,7 @@ import logging
 import os
 
 from ingestion_backend import DataBackendABC
-from pydantic import BaseModel
-from sqlalchemy import MetaData, create_engine, inspect
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
 PSQL_USER = os.getenv("POSTGRES_USER")
@@ -32,6 +31,7 @@ logger.setLevel(INGESTION_LOGGING_LEVEL)
 
 
 class PostgresBackend(DataBackendABC):
+    """Implementation of data backend ABC for PostgreSQL using SQL Alchemy"""
 
     def __init__(self):
         logger.info("PSQL: Initializing PostgreSQL storage backend..")
@@ -41,15 +41,15 @@ class PostgresBackend(DataBackendABC):
                 autocommit=False, autoflush=False, bind=self.engine)
 
             self.db_session = local_db_session()
-        except ValueError as e:
-            logger.error("PSQL: Error creating DB engine",
-                         e.with_traceback)
-            raise e
+        except ValueError as error:
+            logger.error("PSQL: Error creating DB engine")
+            raise error
 
     def __del__(self):
         self.db_session.close()
 
     def create_entry(self, entry):
+        """C / U of CRUD using SQL Alchemy's MERGE"""
         # check if table exists and create based on schema if it does not
         # if not self.engine.dialect.has_table(self.engine, entry.__tablename__):
         if not inspect(self.engine).has_table(entry.__tablename__):
@@ -58,3 +58,21 @@ class PostgresBackend(DataBackendABC):
         logger.debug("PSQL: Adding record")
         self.db_session.merge(entry)
         self.db_session.commit()
+
+    def read_entry(self, id_field: str, entry_id: str, model):
+        """"R of CRUD by ID, allowing for the ID field to be specified."""
+        entry = self.db_session.query(model).filter(
+            getattr(model, id_field, None) == entry_id).first()
+        if not entry:
+            return False
+        return entry
+
+    def delete_entry(self, id_field: str, entry_id: str, model):
+        """D of CRUD by ID, allowing for the ID field to be specified."""
+        entry = self.db_session.query(model).filter(
+            getattr(model, id_field, None) == entry_id)
+        if not entry:
+            return False
+        entry.delete(synchronize_session=False)
+        self.db_session.commit()
+        return True

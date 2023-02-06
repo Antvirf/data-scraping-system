@@ -2,8 +2,6 @@
 
 from abc import ABC
 
-from pydantic import BaseModel
-
 
 class DataBackendABC(ABC):
     """ABC for data backends to decouple API code from backend operations."""
@@ -14,14 +12,11 @@ class DataBackendABC(ABC):
     def __del__(self):
         """Implementation specific connection closure and object deletion"""
 
-    def create_entry(self, table: str, entry):
-        """C of CRUD"""
+    def create_entry(self, entry):
+        """C / U of CRUD"""
 
-    def read_entry(self, table: str, entry_id: str):
+    def read_entry(self, id_field: str, entry_id: str, model):
         """R of CRUD"""
 
-    def update_entry(self, table: str, entry):
-        """U of CRUD"""
-
-    def delete_entry(self, table: str, entry_id: str):
+    def delete_entry(self, id_field: str, entry_id: str, model) -> bool:
         """D of CRUD"""
