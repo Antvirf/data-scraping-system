@@ -3,8 +3,10 @@
 ## Usage
 
 ```bash
-make up # bring up db and continuously running services like ingestion (ctrl+c to stop)
+make up # bring continuously running services like db and ingestion (ctrl+c to stop)
+make initialize # initialize data from local JSON
 make collect # scrape and send data for ingestion from available scrapers
+make collect-local # scrape and save data locally (json)
 make down # remove resources created by compose, including clearing db
 ```
 

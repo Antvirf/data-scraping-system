@@ -93,33 +93,49 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("scraper_28hse")
     parser.add_argument(
         "-o", "--output",
-        help="Specify output type - e.g. outgoing REST call or local JSON file",
+        help="Specify output type as 'ingestion-service' or leave blank to save as JSON",
         default="json",
         type=str
     )
+    parser.add_argument(
+        "-i", "--initialize-db",
+        action="store_true",
+        help="Provide the initialize DB flag to ONLY send all locally available records to backend"
+    )
     args = vars(parser.parse_args())
 
-    # scrape data
     URL = "https://www.28hse.com/en/rent/residential"
     domain = get_domain_from_url(URL)
+    current_process_listing_data = []
 
-    response = requests.get(URL)
-    response.raise_for_status()
-    logging.info("%s: Webpage fetched successfully", domain)
+    if args["initialize_db"]:
+        # if init, load listings from local file
+        with open(SCRAPER_FILE_OUTPUT_NAME, "r") as read_file:
+            current_process_listing_data = json.load(read_file)
+        logging.info("Scraper initializing DB, loading %d records from local JSON..", len(
+            current_process_listing_data))
 
-    souped_response = bs4.BeautifulSoup(response.text, 'html.parser')
-    recent_listings = souped_response.select('.property_item')
-    logging.info("%s: %s recent listings found", domain, len(recent_listings))
+    elif not args["initialize_db"]:
+        # if not init, then scraping
 
-    new_listing_data = []
-    for listing in recent_listings:
-        new_listing_data.append(
-            recent_listing_entry_into_dict(listing, scraper_dict_28hse)
-        )
+        response = requests.get(URL)
+        response.raise_for_status()
+        logging.info("%s: Webpage fetched successfully", domain)
+
+        souped_response = bs4.BeautifulSoup(response.text, 'html.parser')
+        recent_listings = souped_response.select('.property_item')
+        logging.info("%s: %s recent listings found",
+                     domain, len(recent_listings))
+
+        for listing in recent_listings:
+            current_process_listing_data.append(
+                recent_listing_entry_into_dict(listing, scraper_dict_28hse)
+            )
 
     # save output as specified, or default to json
-    if args["output"].lower() == "ingestion-service":
-        for listing in new_listing_data:
+    # trigger either with ingestion-service as output, or if initialize_db is true
+    if args["output"].lower() == "ingestion-service" or args["initialize_db"]:
+        for listing in current_process_listing_data:
             sent_request = requests.post(
                 f"http://{SCRAPER_INGESTION_SERVICE_HOST}:{SCRAPER_INGESTION_SERVICE_PORT}/ingest/28hse/",
                 json=listing
@@ -150,7 +166,7 @@ if __name__ == "__main__":
         # merge list of dicts
         combined_listing_data = merge_listing_lists(
             existing_listing_data,
-            new_listing_data,
+            current_process_listing_data,
             overwrite=False
         )
         with open(SCRAPER_FILE_OUTPUT_NAME, "w") as write_file:

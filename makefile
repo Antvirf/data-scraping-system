@@ -9,7 +9,10 @@ up:
 	docker-compose build
 	docker-compose up
 
-# Spin down, including removall of all volumes (i.e. loses all data)
+# initialize data
+initialize: initialize-data-28hse
+
+# spin down, including removall of all volumes (i.e. loses all data)
 down:
 	docker-compose down --volumes
 
@@ -34,6 +37,9 @@ build-scraper-28hse:
 
 run-scraper-28hse:
 	cd ./scrapers/28hse/ && python scraper_28hse.py -o ingestion-service
+
+initialize-data-28hse:
+	cd ./scrapers/28hse/ && python scraper_28hse.py --initialize-db
 
 run-scraper-locally-28hse:
 	cd ./scrapers/28hse/ && python scraper_28hse.py
