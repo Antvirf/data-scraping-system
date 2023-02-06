@@ -56,6 +56,5 @@ class PostgresBackend(DataBackendABC):
             entry.__table__.create(self.engine)
 
         logger.debug("PSQL: Adding record")
-        self.db_session.add(entry)
+        self.db_session.merge(entry)
         self.db_session.commit()
-        self.db_session.refresh(entry)

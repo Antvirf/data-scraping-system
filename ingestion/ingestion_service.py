@@ -42,11 +42,11 @@ storage_backend = AVAILABLE_BACKENDS[INGESTION_STORAGE_BACKEND]()
 
 
 @app.post("/ingest/28hse/")
-def ingest_incoming_data_28hse(listing: scraped_listing):
+def ingest_incoming_data_28hse(listing: scraped_listing, status_code=201):
     """Takes data from the POST request payload and stores it in storage backend."""
     new_listing = scraped_listing_db_entry(**listing.dict())
     storage_backend.create_entry(new_listing)
-    return listing
+    return "record created"
 
 
 @app.post("/ingest/debug/")
