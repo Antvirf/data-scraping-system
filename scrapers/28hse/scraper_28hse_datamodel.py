@@ -1,6 +1,6 @@
+"""Dict of keys and data extraction functions for the scraper"""
 import time
 
-# scraper_dict used by the scraper
 scraper_dict_28hse = {
     "listingTitle": lambda entry:
         entry.select(".detail_page")[1].text,

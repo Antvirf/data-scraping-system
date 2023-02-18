@@ -34,6 +34,7 @@ class PostgresBackend(DataBackendABC):
     """Implementation of data backend ABC for PostgreSQL using SQL Alchemy"""
 
     def __init__(self):
+        super().__init__()
         logger.info("PSQL: Initializing PostgreSQL storage backend..")
         try:
             self.engine = create_engine(PSQL_CONNECTION_STRING)

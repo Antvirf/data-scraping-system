@@ -79,10 +79,10 @@ def merge_listing_lists(
     if overwrite:
         # take only non-overlap from existing data, and then use all of new data
         merged_listings = [x for x in existing_listings if x["listingId"] not in duplicated_ids] \
-            + [x for x in new_listings]
+            + new_listings
     else:
         # not overwriting - so keep everything from old, and take only non-overlap from new
-        merged_listings = [x for x in existing_listings] + \
+        merged_listings = existing_listings + \
             [x for x in new_listings if x["listingId"] not in duplicated_ids]
 
     return merged_listings
