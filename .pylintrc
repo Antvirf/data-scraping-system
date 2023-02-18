@@ -1,0 +1,2 @@
+[DEFAULT]
+disable=line-too-long,too-few-public-methods,no-name-in-module

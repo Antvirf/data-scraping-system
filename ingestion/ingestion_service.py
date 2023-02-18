@@ -3,12 +3,12 @@
 import logging
 import os
 
-from backends.postgres.db_model_28hse import scraped_listing_db_entry
+from backends.postgres.db_model_28hse import ScrapedListingDbEntry
 from backends.postgres.postgres import PostgresBackend
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi_pagination import Page, Params, add_pagination, paginate
 # 28hse specific models
-from models.model_28hse import scraped_listing
+from models.model_28hse import ScrapedListing
 
 INGESTION_STORAGE_BACKEND = os.getenv(
     "INGESTION_STORAGE_BACKEND", default="POSTGRES")
@@ -59,9 +59,9 @@ def ingest_incoming_data_any(incoming):
 # scrapers' endpoints - 28hse
 
 @app.post("/ingest/28hse/")
-def ingest_incoming_data_28hse(listing: scraped_listing):
+def ingest_incoming_data_28hse(listing: ScrapedListing):
     """Takes a scrapedListing from the POST request payload and stores it in storage backend."""
-    new_listing = scraped_listing_db_entry(**listing.dict())
+    new_listing = ScrapedListingDbEntry(**listing.dict())
     storage_backend.create_entry(new_listing)
     return "record created"
 
@@ -70,10 +70,10 @@ def ingest_incoming_data_28hse(listing: scraped_listing):
 def fetch_data_28hse(params: Params = Depends()):
     """Fetches list of 28hse datapoint IDs"""
     list_of_ids = storage_backend.read_entry_ids(
-        "listingId", scraped_listing_db_entry)
+        "listingId", ScrapedListingDbEntry)
     if not list_of_ids:
         raise HTTPException(status_code=404,
-                            detail=f"No records found")
+                            detail="No records found")
     return paginate(list_of_ids, params)
 
 
@@ -81,7 +81,7 @@ def fetch_data_28hse(params: Params = Depends()):
 def fetch_data_by_id_28hse(identifier: str):
     """Fetches a scraped 28hse datapoint by ID"""
     record = storage_backend.read_entry(
-        "listingId", identifier, scraped_listing_db_entry)
+        "listingId", identifier, ScrapedListingDbEntry)
     if not record:
         raise HTTPException(status_code=404,
                             detail=f"No record found with id: {identifier}")
@@ -92,7 +92,7 @@ def fetch_data_by_id_28hse(identifier: str):
 def delete_data_by_id_28hse(identifier: str):
     """Deletes a scraped 28hse datapoint by ID"""
     deleted = storage_backend.delete_entry(
-        "listingId", identifier, scraped_listing_db_entry)
+        "listingId", identifier, ScrapedListingDbEntry)
     if not deleted:
         raise HTTPException(status_code=404,
                             detail=f"No record found with id: {identifier}")
