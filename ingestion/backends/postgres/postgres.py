@@ -67,6 +67,14 @@ class PostgresBackend(DataBackendABC):
             return False
         return entry
 
+    def read_entry_ids(self, id_field: str, model):
+        """R of CRUD but return list of IDs"""
+        list_of_ids = self.db_session.query(getattr(model, id_field)).all()
+        list_of_ids = [x[0] for x in list_of_ids]
+        if not list_of_ids:
+            return False
+        return list_of_ids
+
     def delete_entry(self, id_field: str, entry_id: str, model):
         """D of CRUD by ID, allowing for the ID field to be specified."""
         entry = self.db_session.query(model).filter(

@@ -5,7 +5,8 @@ import os
 
 from backends.postgres.db_model_28hse import scraped_listing_db_entry
 from backends.postgres.postgres import PostgresBackend
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi_pagination import Page, Params, add_pagination, paginate
 # 28hse specific models
 from models.model_28hse import scraped_listing
 
@@ -34,6 +35,7 @@ logger = logging.getLogger()
 logger.setLevel(INGESTION_LOGGING_LEVEL)
 
 app = FastAPI()
+add_pagination(app)
 
 storage_backend = AVAILABLE_BACKENDS[INGESTION_STORAGE_BACKEND]()
 
@@ -62,6 +64,17 @@ def ingest_incoming_data_28hse(listing: scraped_listing):
     new_listing = scraped_listing_db_entry(**listing.dict())
     storage_backend.create_entry(new_listing)
     return "record created"
+
+
+@app.get("/data/28hse/", response_model=Page[str])
+def fetch_data_28hse(params: Params = Depends()):
+    """Fetches list of 28hse datapoint IDs"""
+    list_of_ids = storage_backend.read_entry_ids(
+        "listingId", scraped_listing_db_entry)
+    if not list_of_ids:
+        raise HTTPException(status_code=404,
+                            detail=f"No records found")
+    return paginate(list_of_ids, params)
 
 
 @app.get("/data/28hse/{identifier}")

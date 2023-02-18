@@ -18,5 +18,8 @@ class DataBackendABC(ABC):
     def read_entry(self, id_field: str, entry_id: str, model):
         """R of CRUD"""
 
+    def read_entry_ids(self, id_field: str, model):
+        """R of CRUD but return list of IDs"""
+
     def delete_entry(self, id_field: str, entry_id: str, model) -> bool:
         """D of CRUD"""
